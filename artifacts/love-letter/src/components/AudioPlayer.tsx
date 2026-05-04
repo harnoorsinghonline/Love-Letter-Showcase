@@ -2,17 +2,44 @@ import { useState, useRef, useEffect } from "react";
 
 export default function AudioPlayer() {
   const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true); // Start muted to enable autoplay
+  const [userInteracted, setUserInteracted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Sang Rahiyo - Using uploaded MP3 file
   const audioUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sang-Rahiyo-se3G3kXbWni3EU24P3iX5VN5irnfFg.mp3";
 
+  // Start autoplay on mount
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(err => {
+        console.log("[v0] Autoplay blocked by browser");
+      });
+    }
+
+    // Listen for first user interaction to unmute
+    const handleUserInteraction = () => {
+      if (!userInteracted && audioRef.current) {
+        setMuted(false);
+        setUserInteracted(true);
+        document.removeEventListener("click", handleUserInteraction);
+        document.removeEventListener("touchstart", handleUserInteraction);
+      }
+    };
+
+    document.addEventListener("click", handleUserInteraction);
+    document.addEventListener("touchstart", handleUserInteraction);
+
+    return () => {
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, [userInteracted]);
+
   useEffect(() => {
     if (audioRef.current) {
       if (playing) {
         audioRef.current.play().catch(() => {
-          // Autoplay might be blocked by browser, user can click play button
           setPlaying(false);
         });
       } else {
@@ -37,7 +64,7 @@ export default function AudioPlayer() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-      {/* Hidden audio element */}
+      {/* Hidden audio element - starts muted for autoplay, unmutes on first interaction */}
       <audio
         ref={audioRef}
         src={audioUrl}
