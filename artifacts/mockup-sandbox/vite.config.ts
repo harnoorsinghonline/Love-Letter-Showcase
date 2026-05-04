@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
+import type { PluginOption } from "vite";
 
 const rawPort = process.env.PORT;
 
@@ -27,24 +28,33 @@ if (!basePath) {
   );
 }
 
-export default defineConfig({
-  base: basePath,
-  plugins: [
+const getPlugins = (): PluginOption[] => {
+  const plugins: PluginOption[] = [
     mockupPreviewPlugin(),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, ".."),
-            }),
-          ),
-        ]
-      : []),
-  ],
+  ];
+
+  if (process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined) {
+    try {
+      const cartographer = require("@replit/vite-plugin-cartographer").cartographer;
+      plugins.push(
+        cartographer({
+          root: path.resolve(import.meta.dirname, ".."),
+        })
+      );
+    } catch (e) {
+      // cartographer plugin not available, skip it
+    }
+  }
+
+  return plugins;
+};
+
+export default defineConfig({
+  base: basePath,
+  plugins: getPlugins(),
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
