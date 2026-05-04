@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { Analytics } from "@vercel/analytics/react";
 import StarField from "@/components/StarField";
 import FloatingFood from "@/components/FloatingFood";
 import HeroSection from "@/components/HeroSection";
@@ -51,7 +50,7 @@ export default function App() {
 
       <AudioPlayer />
 
-      <Analytics />
+
     </div>
   );
 }
