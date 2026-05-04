@@ -72,7 +72,8 @@ export const trackPageView = async () => {
 
   // Send to analytics endpoint
   try {
-    await fetch('/api/analytics', {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    await fetch(`${apiUrl}/api/analytics`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

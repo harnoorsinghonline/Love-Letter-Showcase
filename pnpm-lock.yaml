@@ -19,7 +19,7 @@ catalogs:
       specifier: ^5.90.21
       version: 5.90.21
     '@types/node':
-      specifier: ^25.3.3
+      specifier: ^25.3.5
       version: 25.3.5
     '@types/react':
       specifier: ^19.2.0
@@ -4337,7 +4337,7 @@ snapshots:
 
   '@types/cors@2.8.19':
     dependencies:
-      '@types/node': 25.3.5
+      '@types/node': 22.19.17
 
   '@types/d3-array@3.2.2': {}
 

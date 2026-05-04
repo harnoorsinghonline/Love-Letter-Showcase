@@ -2,39 +2,48 @@ import { useState, useRef, useEffect } from "react";
 
 export default function AudioPlayer() {
   const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(true); // Start muted to enable autoplay
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Sang Rahiyo - Using uploaded MP3 file
-  const audioUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sang-Rahiyo-se3G3kXbWni3EU24P3iX5VN5irnfFg.mp3";
+  const audioUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sang-Rahiyo-tcFwlkTXzKKJjwmaTF6HJoHpqPEySC.mp3";
 
   // Start autoplay on mount
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.play().catch(err => {
-        console.log("[v0] Autoplay blocked by browser");
-      });
-    }
-
-    // Listen for first user interaction to unmute
-    const handleUserInteraction = () => {
-      if (!userInteracted && audioRef.current) {
-        setMuted(false);
-        setUserInteracted(true);
-        document.removeEventListener("click", handleUserInteraction);
-        document.removeEventListener("touchstart", handleUserInteraction);
+    const autoplayAudio = async () => {
+      if (audioRef.current) {
+        try {
+          // Attempt to play without sound first
+          await audioRef.current.play();
+        } catch (err) {
+          // If autoplay is blocked, try muted approach
+          if (audioRef.current) {
+            audioRef.current.muted = true;
+            try {
+              await audioRef.current.play();
+              // After first user interaction, unmute
+              const handleFirstInteraction = () => {
+                if (audioRef.current) {
+                  audioRef.current.muted = false;
+                  setMuted(false);
+                }
+                document.removeEventListener("click", handleFirstInteraction);
+                document.removeEventListener("touchstart", handleFirstInteraction);
+              };
+              document.addEventListener("click", handleFirstInteraction);
+              document.addEventListener("touchstart", handleFirstInteraction);
+            } catch (muteError) {
+              console.log("[v0] Audio playback failed");
+            }
+          }
+        }
       }
     };
 
-    document.addEventListener("click", handleUserInteraction);
-    document.addEventListener("touchstart", handleUserInteraction);
-
-    return () => {
-      document.removeEventListener("click", handleUserInteraction);
-      document.removeEventListener("touchstart", handleUserInteraction);
-    };
-  }, [userInteracted]);
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(autoplayAudio, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) {

@@ -58,14 +58,17 @@ export default function Analytics() {
   const fetchAnalyticsData = async () => {
     setLoading(true);
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
       const [eventsRes, summaryRes] = await Promise.all([
-        fetch("/api/analytics"),
-        fetch("/api/analytics/summary"),
+        fetch(`${apiUrl}/api/analytics?password=priyalovesme`),
+        fetch(`${apiUrl}/api/analytics/summary?password=priyalovesme`),
       ]);
 
       if (eventsRes.ok) {
         const data = await eventsRes.json();
         setEvents(data.events || []);
+      } else if (eventsRes.status === 401) {
+        setError("Invalid password or unauthorized access");
       }
 
       if (summaryRes.ok) {
@@ -74,6 +77,7 @@ export default function Analytics() {
       }
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
+      setError("Unable to connect to analytics server. Make sure the API server is running.");
     } finally {
       setLoading(false);
     }
@@ -184,6 +188,12 @@ export default function Analytics() {
 
         {loading && (
           <div className="text-center text-white/60 py-8">Loading analytics...</div>
+        )}
+
+        {error && !loading && (
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300">
+            {error}
+          </div>
         )}
 
         {summary && (
