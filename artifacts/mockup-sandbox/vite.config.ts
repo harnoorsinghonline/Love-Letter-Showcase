@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
+import type { PluginOption } from "vite";
 
 const rawPort = process.env.PORT;
 
@@ -27,8 +28,8 @@ if (!basePath) {
   );
 }
 
-const getPlugins = () => {
-  const plugins = [
+const getPlugins = (): PluginOption[] => {
+  const plugins: PluginOption[] = [
     mockupPreviewPlugin(),
     react(),
     tailwindcss(),
