@@ -1,17 +1,58 @@
 import { useState, useRef, useEffect } from "react";
 
 export default function AudioPlayer() {
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(true); // Start muted to enable autoplay
+  const [userInteracted, setUserInteracted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Sang Rahiyo - Jubin Nautiyal (popular YouTube video)
-  const videoId = "Zs-iBGuvyas";
+  // Sang Rahiyo - Using uploaded MP3 file
+  const audioUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sang-Rahiyo-se3G3kXbWni3EU24P3iX5VN5irnfFg.mp3";
+
+  // Start autoplay on mount
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(err => {
+        console.log("[v0] Autoplay blocked by browser");
+      });
+    }
+
+    // Listen for first user interaction to unmute
+    const handleUserInteraction = () => {
+      if (!userInteracted && audioRef.current) {
+        setMuted(false);
+        setUserInteracted(true);
+        document.removeEventListener("click", handleUserInteraction);
+        document.removeEventListener("touchstart", handleUserInteraction);
+      }
+    };
+
+    document.addEventListener("click", handleUserInteraction);
+    document.addEventListener("touchstart", handleUserInteraction);
+
+    return () => {
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, [userInteracted]);
 
   useEffect(() => {
-    setLoaded(true);
-  }, []);
+    if (audioRef.current) {
+      if (playing) {
+        audioRef.current.play().catch(() => {
+          setPlaying(false);
+        });
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [playing]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = muted;
+    }
+  }, [muted]);
 
   const togglePlay = () => {
     setPlaying(prev => !prev);
@@ -21,21 +62,15 @@ export default function AudioPlayer() {
     setMuted(prev => !prev);
   };
 
-  const src = `https://www.youtube.com/embed/${videoId}?autoplay=${playing ? 1 : 0}&mute=${muted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0&showinfo=0`;
-
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-      {/* Hidden YouTube iframe */}
-      {loaded && (
-        <iframe
-          ref={iframeRef}
-          src={src}
-          allow="autoplay"
-          style={{ width: 0, height: 0, position: "absolute", opacity: 0, pointerEvents: "none" }}
-          title="Background Music"
-        />
-      )}
-
+      {/* Hidden audio element - starts muted for autoplay, unmutes on first interaction */}
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        loop
+        title="Background Music - Sang Rahiyo"
+      />
       {/* Music control pill */}
       <div className="audio-btn rounded-full px-4 py-3 flex items-center gap-3 cursor-pointer select-none">
         <button

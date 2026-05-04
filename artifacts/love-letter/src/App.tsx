@@ -4,9 +4,13 @@ import FloatingFood from "@/components/FloatingFood";
 import HeroSection from "@/components/HeroSection";
 import LetterSection from "@/components/LetterSection";
 import AudioPlayer from "@/components/AudioPlayer";
+import { trackPageView } from "@/lib/analytics";
 
 export default function App() {
   useEffect(() => {
+    // Track page view on mount
+    trackPageView();
+
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(e => {
