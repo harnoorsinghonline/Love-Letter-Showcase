@@ -2,13 +2,10 @@ import { useEffect } from "react";
 import StarField from "@/components/StarField";
 import FloatingFood from "@/components/FloatingFood";
 import HeroSection from "@/components/HeroSection";
-import FoodBay from "@/components/FoodBay";
 import LetterSection from "@/components/LetterSection";
-import ClosingSection from "@/components/ClosingSection";
 import AudioPlayer from "@/components/AudioPlayer";
 
 export default function App() {
-  // Reveal on scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -30,13 +27,9 @@ export default function App() {
           "linear-gradient(180deg, #0d0308 0%, #130510 15%, #1a0614 30%, #120408 50%, #150610 70%, #0d0308 100%)",
       }}
     >
-      {/* Star field — fixed background */}
       <StarField />
-
-      {/* Floating food — fixed overlay */}
       <FloatingFood />
 
-      {/* Full-page gradient mesh overlay */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
@@ -45,26 +38,16 @@ export default function App() {
         }}
       />
 
-      {/* Scrollable content */}
       <div className="relative z-10">
         <HeroSection />
-
-        {/* Transition divider */}
-        <div className="ornamental-divider max-w-xs mx-auto px-6 my-4">
-          <span className="text-rose-500/40 text-xl select-none">✦</span>
-        </div>
-
-        <FoodBay />
 
         <div className="ornamental-divider max-w-xs mx-auto px-6 my-4">
           <span className="text-rose-500/40 text-xl select-none">❧</span>
         </div>
 
         <LetterSection />
-        <ClosingSection />
       </div>
 
-      {/* Fixed audio player */}
       <AudioPlayer />
     </div>
   );
