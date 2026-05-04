@@ -63,7 +63,7 @@ export default function App() {
   return (
     <Router>
       <Route path="/" component={HomePage} />
-      <Route path="/analytics" component={Analytics} />
+      <Route path="/analytics27" component={Analytics} />
     </Router>
   );
 }

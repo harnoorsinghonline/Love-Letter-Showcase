@@ -9,13 +9,18 @@ const analyticsEvents: Array<{
   timestamp: string;
   userAgent: string;
   referrer: string;
+  deviceType: string;
+  operatingSystem: string;
+  browser: string;
+  screenResolution: string;
+  ipAddress: string;
   receivedAt: string;
 }> = [];
 
 // POST /api/analytics - Record analytics event
 router.post("/analytics", (req: Request, res: Response): void => {
   try {
-    const { type, timestamp, userAgent, referrer } = req.body;
+    const { type, timestamp, userAgent, referrer, deviceType, operatingSystem, browser, screenResolution } = req.body;
 
     if (!type || !timestamp) {
       res.status(400).json({
@@ -24,11 +29,23 @@ router.post("/analytics", (req: Request, res: Response): void => {
       return;
     }
 
+    // Get IP address from request
+    const ipAddress = 
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      (req.headers['x-real-ip'] as string) ||
+      req.socket?.remoteAddress ||
+      'Unknown';
+
     const event = {
       type,
       timestamp,
-      userAgent,
-      referrer,
+      userAgent: userAgent || 'Unknown',
+      referrer: referrer || 'direct',
+      deviceType: deviceType || 'Unknown',
+      operatingSystem: operatingSystem || 'Unknown',
+      browser: browser || 'Unknown',
+      screenResolution: screenResolution || 'Unknown',
+      ipAddress,
       receivedAt: new Date().toISOString(),
     };
 
@@ -40,6 +57,9 @@ router.post("/analytics", (req: Request, res: Response): void => {
         type,
         timestamp,
         referrer,
+        deviceType,
+        operatingSystem,
+        ipAddress,
       },
     });
 
@@ -74,7 +94,7 @@ const checkAnalyticsPassword = (
     req.ip === "::1" ||
     req.hostname.includes("localhost");
 
-  if (!isLocalhost && password !== "helloworld") {
+  if (!isLocalhost && password !== "priyalovesme") {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -97,10 +117,16 @@ router.get(
   (req: Request, res: Response): void => {
     const pageViews = analyticsEvents.filter((e) => e.type === "page_view");
     const referrers: Record<string, number> = {};
+    const devices: Record<string, number> = {};
+    const operatingSystems: Record<string, number> = {};
+    const browsers: Record<string, number> = {};
     const times: string[] = [];
 
     pageViews.forEach((event) => {
       referrers[event.referrer] = (referrers[event.referrer] || 0) + 1;
+      devices[event.deviceType] = (devices[event.deviceType] || 0) + 1;
+      operatingSystems[event.operatingSystem] = (operatingSystems[event.operatingSystem] || 0) + 1;
+      browsers[event.browser] = (browsers[event.browser] || 0) + 1;
       times.push(event.timestamp);
     });
 
@@ -108,10 +134,12 @@ router.get(
       totalPageViews: pageViews.length,
       totalEvents: analyticsEvents.length,
       referrerBreakdown: referrers,
+      deviceBreakdown: devices,
+      osBreakdown: operatingSystems,
+      browserBreakdown: browsers,
       pageViewTimes: times,
     });
   }
 );
 
 export default router;
-
