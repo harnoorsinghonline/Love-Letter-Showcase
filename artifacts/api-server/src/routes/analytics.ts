@@ -59,8 +59,31 @@ router.post("/analytics", (req: Request, res: Response): void => {
   }
 });
 
+// Middleware to check password for analytics endpoints
+const checkAnalyticsPassword = (
+  req: Request,
+  res: Response,
+  next: any
+): void => {
+  const password = req.query.password as string;
+  
+  // Allow requests from localhost without password for development
+  const isLocalhost =
+    req.hostname === "localhost" ||
+    req.hostname === "127.0.0.1" ||
+    req.ip === "::1" ||
+    req.hostname.includes("localhost");
+
+  if (!isLocalhost && password !== "helloworld") {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  next();
+};
+
 // GET /api/analytics - Get all analytics events
-router.get("/analytics", (req: Request, res: Response): void => {
+router.get("/analytics", checkAnalyticsPassword, (req: Request, res: Response): void => {
   res.status(200).json({
     events: analyticsEvents,
     total: analyticsEvents.length,
@@ -68,23 +91,27 @@ router.get("/analytics", (req: Request, res: Response): void => {
 });
 
 // GET /api/analytics/summary - Get analytics summary
-router.get("/analytics/summary", (req: Request, res: Response): void => {
-  const pageViews = analyticsEvents.filter((e) => e.type === "page_view");
-  const referrers: Record<string, number> = {};
-  const times: string[] = [];
+router.get(
+  "/analytics/summary",
+  checkAnalyticsPassword,
+  (req: Request, res: Response): void => {
+    const pageViews = analyticsEvents.filter((e) => e.type === "page_view");
+    const referrers: Record<string, number> = {};
+    const times: string[] = [];
 
-  pageViews.forEach((event) => {
-    referrers[event.referrer] = (referrers[event.referrer] || 0) + 1;
-    times.push(event.timestamp);
-  });
+    pageViews.forEach((event) => {
+      referrers[event.referrer] = (referrers[event.referrer] || 0) + 1;
+      times.push(event.timestamp);
+    });
 
-  res.status(200).json({
-    totalPageViews: pageViews.length,
-    totalEvents: analyticsEvents.length,
-    referrerBreakdown: referrers,
-    pageViewTimes: times,
-  });
-});
+    res.status(200).json({
+      totalPageViews: pageViews.length,
+      totalEvents: analyticsEvents.length,
+      referrerBreakdown: referrers,
+      pageViewTimes: times,
+    });
+  }
+);
 
 export default router;
 

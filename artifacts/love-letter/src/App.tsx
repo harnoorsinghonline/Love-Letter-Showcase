@@ -1,12 +1,14 @@
 import { useEffect } from "react";
+import { Router, Route } from "wouter";
 import StarField from "@/components/StarField";
 import FloatingFood from "@/components/FloatingFood";
 import HeroSection from "@/components/HeroSection";
 import LetterSection from "@/components/LetterSection";
 import AudioPlayer from "@/components/AudioPlayer";
+import Analytics from "@/pages/analytics";
 import { trackPageView } from "@/lib/analytics";
 
-export default function App() {
+function HomePage() {
   useEffect(() => {
     // Track page view on mount
     trackPageView();
@@ -54,5 +56,14 @@ export default function App() {
 
       <AudioPlayer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <Route path="/" component={HomePage} />
+      <Route path="/analytics" component={Analytics} />
+    </Router>
   );
 }
